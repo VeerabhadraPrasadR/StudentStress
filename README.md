@@ -30,7 +30,7 @@ An **AI-powered web application** that predicts student stress levels using mach
 - **Smart Fallback System** - State capital recommendations when local data unavailable
 - **Emergency Contacts** - Critical mental health helplines and support numbers
 
-![Course Selection](images/course_selection.png)
+
 
 ## 🌟 **What Makes This Special**
 
@@ -61,7 +61,7 @@ Choose from 8 specialized academic fields for tailored analysis:
 ### 2. **Emotional State & Trigger Analysis**
 Advanced emotional intelligence system:
 
-![Emotional Tracking](images/emotional_tracking.png)
+![Emotional Tracking](images/course_selection.png)
 
 **Emotional Levels (12 categories):**
 - 😊 Very Happy → 😰 Severely Depressed
@@ -86,7 +86,7 @@ Advanced emotional intelligence system:
 ### 3. **Location-Based Mental Health Resources**
 Comprehensive support system across India:
 
-![Location Features](images/location_features.png)
+![Location Features](images/emotional_tracking.png)
 
 **Smart Resource Discovery:**
 - 🏥 **Hospitals** - Mental health departments and psychiatry units
@@ -97,7 +97,7 @@ Comprehensive support system across India:
 ### 4. **Comprehensive Results & Recommendations**
 Multi-layered analysis and personalized guidance:
 
-![Prediction Results](images/prediction_results.png)
+![Prediction Results](images/location_features.png)
 
 **Enhanced Prediction Formula:**
 ```
@@ -111,7 +111,7 @@ Final Stress Score = (70% × ML Model) + (10% × Course Factor) + (10% × Emotio
 - 🤝 **Social Support** - Building healthy relationships and networks
 - 🏥 **Professional Help** - When and how to seek mental health support
 
-![Mental Health Resources](images/mental_health_resources.png)
+![Mental Health Resources](images/prediction_results.png)
 
 ## 📊 **Technical Architecture**
 

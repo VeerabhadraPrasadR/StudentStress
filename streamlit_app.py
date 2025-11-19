@@ -5,14 +5,125 @@ import joblib
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import datetime
 import json
+import base64
+import os
 from recommendation_engine import PersonalizedRecommendationEngine
+
+# 🔑 FIX: Define the SCRIPT_DIR once for robust file loading
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# --- START OF BACKGROUND AND FOREGROUND STYLING FIX ---
+
+# This function safely gets the base64 string of the image file
+def get_base64_of_file(file_path):
+    try:
+        # Use os.path.join to get the absolute path
+        full_path = os.path.join(SCRIPT_DIR, file_path)
+        with open(full_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        st.error(f"Error: The background image file was not found at {file_path}. Please ensure 'hi7.png' is in the same directory as this script.")
+        return None
+
+# Use the correct file name from your directory structure
+IMAGE_PATH = "hi7.png"
+
+base64_image = get_base64_of_file(IMAGE_PATH)
+
+# Inject custom CSS for background and foreground theme adjustments
+if base64_image:
+    st.markdown(
+        f"""
+        <style>
+        /* 1. Background Image Styling (40% opacity) */
+        .stApp {{
+            background-image: url("data:image/jpeg;base64,{base64_image}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            /* We set the opacity for the whole app container to 0.4, but rely on
+               the foreground fixes below to re-establish visibility */
+        }}
+        
+        /* 2. FOREGROUND BRIGHTNESS & CONTRAST FIXES */
+        h1, h2, h3, h4, h5, h6, .st-emotion-cache-10trblm, .st-emotion-cache-1dp5ds7, .st-emotion-cache-16p6iir, .st-emotion-cache-n4n4go {{
+            color: #FFFFFF !important; /* Bright White for all text/headings */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Subtle shadow for definition */
+            opacity: 1.0 !important;
+        }}
+
+        /* Make text in input fields bright */
+        .st-emotion-cache-1droff {{
+            background-color: rgba(255, 255, 255, 0.9); /* Near-white background for inputs */
+            color: #000000 !important;
+            opacity: 1.0 !important;
+            border-radius: 5px;
+        }}
+        
+        /* 🔑 CRITICAL FIXES FOR OUTPUT OPACITY (BOXES) */
+
+        /* A. Ensure the main content blocks (where results appear) have a solid background */
+        /* Targets containers of st.success, st.error, st.info, st.warning, st.metric */
+        [data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"] {{
+            background-color: rgba(0, 0, 0, 0.75); /* Dark, 75% opaque background for content area */
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            opacity: 1.0 !important; /* Ensure the block container is opaque */
+        }}
+        
+        /* B. Target specific alert/message boxes inside the blocks (ensuring color contrast) */
+        .stAlert div {{
+            opacity: 1.0 !important;
+            color: #000000 !important; /* Ensure black text on standard Streamlit alerts */
+            background-color: #f0f2f6 !important; /* Use a near-white background for clear contrast */
+        }}
+        
+        /* C. Target the st.success and st.error messages explicitly */
+        .stSuccess, .stError, .stWarning, .stInfo {{
+            opacity: 1.0 !important;
+        }}
+
+        /* D. Fix text color inside metrics and expanders */
+        [data-testid="stMetricValue"] {{
+             color: #32CD32 !important; /* Bright color for metric values */
+             text-shadow: none !important;
+        }}
+        
+        [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] {{
+             color: #FFFFFF !important;
+             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }}
+
+        /* Other standard styling (buttons, sidebar) */
+        .stButton button, .stDownloadButton button {{
+            background-color: #32CD32; 
+            color: #000000; 
+            border-radius: 8px;
+            border: 1px solid #000000;
+            opacity: 1.0 !important;
+        }}
+        
+        [data-testid="stSidebar"] {{
+            background-color: rgba(0, 0, 0, 0.6);
+        }}
+
+        .main, .st-emotion-cache-1wivap2 {{
+            opacity: 1.0;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+# --- END OF STYLING FIX ---
+
 
 # Load the trained model and mappings
 @st.cache_resource
 def load_model():
+    model_path = os.path.join(SCRIPT_DIR, 'stress_prediction_models.pkl')
     try:
-        model = joblib.load('stress_prediction_models.pkl')
-        st.success('Model loaded successfully!')
+        model = joblib.load(model_path)
         return model
     except Exception as e:
         st.error(f'Could not load model: {e}')
@@ -21,9 +132,11 @@ def load_model():
 @st.cache_resource
 def load_location_data():
     """Load state and city data"""
+    location_path = os.path.join(SCRIPT_DIR, 'state_city_data.json')
     try:
-        with open('state_city_data.json', 'r') as f:
-            return json.load(f)
+        with open(location_path, 'r') as f:
+            data = json.load(f)
+            return data
     except Exception as e:
         st.error(f'Could not load location data: {e}')
         return {}
@@ -32,7 +145,8 @@ def load_location_data():
 def initialize_recommendation_engine():
     """Initialize the recommendation engine"""
     try:
-        return PersonalizedRecommendationEngine()
+        instance = PersonalizedRecommendationEngine()
+        return instance
     except Exception as e:
         st.error(f'Could not initialize recommendation engine: {e}')
         return None
@@ -166,15 +280,12 @@ def predict_stress_level(mark10th, mark12th, collegemark, carrer_willing, smtime
 # App title
 st.title('🎓 Enhanced Student Stress Level Predictor')
 st.markdown('### AI-Powered Mental Health Assessment with Personalized Recommendations')
-
 # Load model and data
 model_data = load_model()
 location_data = load_location_data()
 recommendation_engine = initialize_recommendation_engine()
-
 # Create three columns for input
 col1, col2, col3 = st.columns(3)
-
 with col1:
     st.subheader('📚 Academic Information')
     mark10th = st.slider('10th Grade Marks (%)', 30, 100, 75)
@@ -184,7 +295,7 @@ with col1:
     # Professional Course Selection
     st.subheader('🎯 Professional Course')
     course_options = [
-        'Engineering', 'Medical', 'Law', 'Commerce', 'Arts/Humanities', 
+        'Engineering', 'Medical', 'Law', 'Commerce', 'Arts/Humanities',
         'Science', 'MBA', 'Computer Science'
     ]
     professional_course = st.selectbox('Select your professional course:', course_options)
@@ -193,7 +304,6 @@ with col1:
     gender = st.selectbox('Gender', ['Male', 'Female'])
     height = st.slider('Height (cm)', 140, 200, 170)
     weight = st.slider('Weight (kg)', 30, 120, 65)
-
 with col2:
     st.subheader('🏃 Lifestyle & Career')
     studytime = st.slider('Study Time (hours/day)', 0, 12, 6)
@@ -204,7 +314,6 @@ with col2:
     salexpect = st.number_input('Salary Expectation (₹)', 10000, 2000000, 50000)
     carrer_willing = st.slider('Career Willingness (%)', 0, 100, 50)
     financial = st.selectbox('Financial Status', ['Awful', 'Bad', 'Good', 'Fabulous'])
-
 with col3:
     st.subheader('😊 Current Emotional State')
     emotion_options = [
@@ -233,19 +342,15 @@ with col3:
         placeholder='Optional: Share any additional details about your current emotional state, recent events, or concerns...',
         height=100
     )
-
 # Location Section
 st.subheader('📍 Your Location (for local mental health resources)')
 loc_col1, loc_col2 = st.columns(2)
-
 with loc_col1:
     states = list(location_data.keys()) if location_data else ['Karnataka', 'Maharashtra', 'Tamil Nadu', 'Delhi']
     selected_state = st.selectbox('Select your state:', states)
-
 with loc_col2:
     cities = location_data.get(selected_state, ['Bangalore', 'Mumbai', 'Chennai', 'New Delhi'])
     selected_city = st.selectbox('Select your city:', cities)
-
 # Predict button
 if st.button('🔮 Predict Stress Level & Get Recommendations', type='primary'):
     if recommendation_engine is None:
@@ -419,7 +524,7 @@ if st.button('🔮 Predict Stress Level & Get Recommendations', type='primary'):
                 st.subheader('🏥 Hospitals')
                 hospitals = location_facilities.get('hospitals', [])
                 if hospitals:
-                    for hospital in hospitals[:3]:  # Show first 3
+                    for hospital in hospitals[:3]: # Show first 3
                         with st.expander(f"{hospital['name']} ({hospital['type']})"):
                             st.write(f"📍 {hospital['address']}")
                             st.write(f"📞 {hospital['phone']}")
@@ -502,7 +607,6 @@ if st.button('🔮 Predict Stress Level & Get Recommendations', type='primary'):
     elif 'predicted_level' in locals() and predicted_level == 'Awful':
         st.markdown('---')
         st.error('🚨 **CRISIS DISCLAIMER**: This is an automated assessment. If you are having thoughts of self-harm or suicide, please seek immediate professional help or call emergency services. Your life matters and help is available 24/7.')
-
 st.markdown('---')
 st.caption('Enhanced Student Stress Prediction System v2.0 | Includes Professional Course Analysis, Emotional State Tracking, and Location-Based Mental Health Resources')
 st.caption('⚠️ Disclaimer: This tool is for informational purposes only and should not replace professional medical advice.')

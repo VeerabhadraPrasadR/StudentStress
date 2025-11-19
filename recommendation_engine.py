@@ -1,7 +1,11 @@
 import json
 import re
+import os # 🔑 FIX: Import os for path handling
 from typing import Dict, List, Tuple
 import pandas as pd
+
+# 🔑 FIX: Define the base path for robust file loading within this module
+ENGINE_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class EmotionalAnalyzer:
     def __init__(self):
@@ -116,9 +120,15 @@ class EmotionalAnalyzer:
         return max(0.0, min(1.0, sentiment_score))
 
 class CourseAnalyzer:
+    # 🔑 FIX: Apply robust path handling here
     def __init__(self):
-        with open('course_stress_patterns.json', 'r') as f:
-            self.course_patterns = json.load(f)
+        course_patterns_path = os.path.join(ENGINE_SCRIPT_DIR, 'course_stress_patterns.json')
+        try:
+            with open(course_patterns_path, 'r') as f:
+                self.course_patterns = json.load(f)
+        except FileNotFoundError as e:
+            # Re-raise the error with the absolute path for clarity
+            raise FileNotFoundError(f"CourseAnalyzer failed to load file: {course_patterns_path}. Error: {e}")
     
     def get_course_stress_factor(self, course: str) -> float:
         """Get stress factor for a specific course"""
@@ -138,17 +148,23 @@ class CourseAnalyzer:
             strategies.extend([
                 f'Consider academic counseling for {course} students',
                 'Explore stress management workshops specific to your field',
-                'Connect with senior students in {course} for guidance'
+                f'Connect with senior students in {course} for guidance'
             ])
         
         return strategies
 
 class LocationBasedRecommendations:
+    # 🔑 FIX: Apply robust path handling here
     def __init__(self):
-        with open('india_mental_health_facilities.json', 'r') as f:
-            self.facilities = json.load(f)
-        
-        # State capital mapping for fallback
+        facilities_path = os.path.join(ENGINE_SCRIPT_DIR, 'india_mental_health_facilities.json')
+        try:
+            with open(facilities_path, 'r') as f:
+                self.facilities = json.load(f)
+        except FileNotFoundError as e:
+            # Re-raise the error with the absolute path for clarity
+            raise FileNotFoundError(f"LocationBasedRecommendations failed to load file: {facilities_path}. Error: {e}")
+
+        # State capital mapping for fallback (unchanged)
         self.state_capitals = {
             'Andhra Pradesh': 'Amaravati',
             'Arunachal Pradesh': 'Itanagar',

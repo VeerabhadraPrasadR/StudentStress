@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-> **🚀 Live Demo:** [mystress.streamlit.app](https://mystress.streamlit.app/)
+> **🚀 Live Demo:** [mystress.streamlit.app](https://predictmystress.streamlit.app/)
 
 An **AI-powered web application** that predicts student stress levels using machine learning and provides personalized recommendations with comprehensive mental health resources across India.
 

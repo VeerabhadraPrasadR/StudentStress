@@ -12,110 +12,63 @@ from recommendation_engine import PersonalizedRecommendationEngine
 # 🔑 FIX: Define the SCRIPT_DIR once for robust file loading
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# --- START OF BACKGROUND AND FOREGROUND STYLING FIX ---
+# --- START OF VIDEO BACKGROUND FIX ---
 
-# This function safely gets the base64 string of the image file
-def get_base64_of_file(file_path):
+def get_base64_of_video(file_path):
     try:
-        # Use os.path.join to get the absolute path
         full_path = os.path.join(SCRIPT_DIR, file_path)
         with open(full_path, "rb") as f:
             return base64.b64encode(f.read()).decode()
     except FileNotFoundError:
-        st.error(f"Error: The background image file was not found at {file_path}. Please ensure 'hi7.png' is in the same directory as this script.")
+        st.error(f"Error: Video file not found at {file_path}")
         return None
 
-# Use the correct file name from your directory structure
-IMAGE_PATH = "hi7.png"
+VIDEO_FOLDER = "video"
+VIDEO_FILENAME = "background.mp4"  # change if different
+VIDEO_PATH = os.path.join(VIDEO_FOLDER, VIDEO_FILENAME)
 
-base64_image = get_base64_of_file(IMAGE_PATH)
+base64_video = get_base64_of_video(VIDEO_PATH)
 
-# Inject custom CSS for background and foreground theme adjustments
-if base64_image:
+if base64_video:
     st.markdown(
         f"""
         <style>
-        /* 1. Background Image Styling (40% opacity) */
         .stApp {{
-            background-image: url("data:image/jpeg;base64,{base64_image}");
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            /* We set the opacity for the whole app container to 0.4, but rely on
-               the foreground fixes below to re-establish visibility */
-        }}
-        
-        /* 2. FOREGROUND BRIGHTNESS & CONTRAST FIXES */
-        h1, h2, h3, h4, h5, h6, .st-emotion-cache-10trblm, .st-emotion-cache-1dp5ds7, .st-emotion-cache-16p6iir, .st-emotion-cache-n4n4go {{
-            color: #FFFFFF !important; /* Bright White for all text/headings */
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Subtle shadow for definition */
-            opacity: 1.0 !important;
+            background: none;
         }}
 
-        /* Make text in input fields bright */
-        .st-emotion-cache-1droff {{
-            background-color: rgba(255, 255, 255, 0.9); /* Near-white background for inputs */
-            color: #000000 !important;
-            opacity: 1.0 !important;
-            border-radius: 5px;
-        }}
-        
-        /* 🔑 CRITICAL FIXES FOR OUTPUT OPACITY (BOXES) */
-
-        /* A. Ensure the main content blocks (where results appear) have a solid background */
-        /* Targets containers of st.success, st.error, st.info, st.warning, st.metric */
-        [data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"] {{
-            background-color: rgba(0, 0, 0, 0.75); /* Dark, 75% opaque background for content area */
-            border-radius: 10px;
-            padding: 10px 15px;
-            margin-bottom: 10px;
-            opacity: 1.0 !important; /* Ensure the block container is opaque */
-        }}
-        
-        /* B. Target specific alert/message boxes inside the blocks (ensuring color contrast) */
-        .stAlert div {{
-            opacity: 1.0 !important;
-            color: #000000 !important; /* Ensure black text on standard Streamlit alerts */
-            background-color: #f0f2f6 !important; /* Use a near-white background for clear contrast */
-        }}
-        
-        /* C. Target the st.success and st.error messages explicitly */
-        .stSuccess, .stError, .stWarning, .stInfo {{
-            opacity: 1.0 !important;
+        #bg-video {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: -1;
         }}
 
-        /* D. Fix text color inside metrics and expanders */
-        [data-testid="stMetricValue"] {{
-             color: #32CD32 !important; /* Bright color for metric values */
-             text-shadow: none !important;
-        }}
-        
-        [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] {{
-             color: #FFFFFF !important;
-             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-        }}
-
-        /* Other standard styling (buttons, sidebar) */
-        .stButton button, .stDownloadButton button {{
-            background-color: #32CD32; 
-            color: #000000; 
-            border-radius: 8px;
-            border: 1px solid #000000;
-            opacity: 1.0 !important;
-        }}
-        
-        [data-testid="stSidebar"] {{
-            background-color: rgba(0, 0, 0, 0.6);
-        }}
-
-        .main, .st-emotion-cache-1wivap2 {{
-            opacity: 1.0;
+        .video-overlay {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.55);
+            z-index: -1;
         }}
         </style>
+
+        <video id="bg-video" autoplay loop muted playsinline>
+            <source src="data:video/mp4;base64,{base64_video}" type="video/mp4">
+        </video>
+
+        <div class="video-overlay"></div>
         """,
         unsafe_allow_html=True
     )
-# --- END OF STYLING FIX ---
+
+# --- END OF VIDEO BACKGROUND FIX ---
+
 
 
 # Load the trained model and mappings
